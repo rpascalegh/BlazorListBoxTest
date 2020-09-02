@@ -1,0 +1,159 @@
+﻿<h3>BlazorListBox Component</h3>
+
+<div style="width:250px">
+    <div class="small">
+        <span><button class="btn-sm oi oi-check" @onclick="SelectAll"></button></span>
+        <span><button class="btn-sm oi oi-x" @onclick="clearlist"></button></span>
+    </div>
+    <div>
+        <div class="btn-outline-info active btn-sm p-0" style="text-align:center">@displayName</div>
+    </div>
+    <div>
+        <select @bind="optionSelected" size="@displaySize" class="overflow-auto" style="font-size:14px; min-width:250px; max-width:250px;">
+            @if (DataOptions != null)
+            {
+                foreach (var option in DataOptions)
+                {
+                    <option class="px-2" @onmousedown="@(async (em) => CurrentMouseEvent = em)" value="@option.Code" style="@(Value.Contains(option.Code) ? "background-color:lightgray;" : "")">@option.DisplayValue</option>
+                }
+            }
+
+        </select>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    [Parameter] public List<ListBoxModel> DataOptions { get; set; }
+    [Parameter] public string displayName { get; set; }
+    [Parameter] public int displaySize { get; set; } = 15;
+    [Parameter] public List<string> Value { get; set; }
+    [Parameter] public EventCallback<List<string>> ValueChanged { get; set; }
+
+    private MouseEventArgs CurrentMouseEvent = null;
+
+    private string _optionsSelected;
+
+    private string optionSelected
+    {
+        get { return _optionsSelected; }
+        set
+        {
+            if (optionSelected != null)
+                OnOptionSelected(value);
+            _optionsSelected = "";
+        }
+    }
+
+
+    protected override void OnInitialized()
+    {
+        optionSelected = null;
+        Value = new List<string>() { "empty" };
+    }
+
+    private void OnOptionSelected(string value)
+    {
+        bool prior = false;
+        int listone = 0;
+        int listtwo = 0;
+        int f1 = 0;
+        int f2 = 0;
+
+
+        //shift key pressed
+        if (CurrentMouseEvent.ShiftKey && !value.Contains("empty"))
+        {
+            //gets number of selected item
+            for (int i = 0; i < DataOptions.Count; i++)
+            {
+                if (value == DataOptions[i].Code)
+                {
+                    listone = i;
+                }
+            }
+
+            foreach (var item in Value)
+            {
+                for (int i = 0; i < DataOptions.Count; i++)
+                {
+                    if (item == DataOptions[i].Code)
+                    {
+                        if (i < listone)
+                        {
+                            prior = true;
+                            listtwo = i;
+                        }
+                        if (i > listtwo && prior == false)
+                        {
+                            listtwo = i;
+                        }
+
+                    }
+                }
+
+            }
+            if (!prior)
+            { f1 = listone; f2 = listtwo; }
+            else { f1 = listtwo; f2 = listone; }
+
+            for (int i = f1; i <= f2; i++)
+            {
+                string itemToAdd = DataOptions[i].Code;
+                if (!Value.Contains(itemToAdd))
+                {
+                    Value.Add(itemToAdd);
+                }
+            }
+
+        }
+
+
+        else
+        {
+            //control key pressed
+            if (!CurrentMouseEvent.CtrlKey || value.Contains("empty"))
+                Value.Clear(); //single select
+
+            //add or remove value from list
+
+            if (!Value.Contains(value))
+                Value.Add(value);
+            else
+                Value.Remove(value);
+
+            //list is empty
+            if (Value.Count == 0)
+                Value.Add("empty");//If undo all entrys
+        }
+
+        //send back to parent
+        ValueChanged.InvokeAsync(Value);
+    }
+
+    private void clearlist()
+    {
+        Value.Clear();
+        Value.Add("empty");
+        ValueChanged.InvokeAsync(Value);
+    }
+
+    //select all
+    private void SelectAll()
+    {
+        Value.Clear();
+
+        foreach (var item in DataOptions)
+        {
+            Value.Add(item.Code);
+        }
+        ValueChanged.InvokeAsync(Value);
+
+    }
+
+
+}
+

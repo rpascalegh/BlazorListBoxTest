@@ -1,0 +1,49 @@
+﻿@page "/Listboxpage"
+
+<h3>BlazorListBoxPage</h3>
+
+<BlazorListBox DataOptions="dropDownList" displayName="My List Box" displaySize="10" Value="listboxSelectedItems" ValueChanged="mybox" ></BlazorListBox>
+
+
+
+
+@code{
+
+    private List<ListBoxModel> dropDownList { get; set; } // hold the values to show in list box
+
+    private List<string> listboxSelectedItems;
+
+    protected override void OnInitialized()
+    {
+        listboxSelectedItems = new List<string>() { "empty" };
+
+        dropDownList = new List<ListBoxModel>();
+
+        for (int i = 0; i < 20; i++)
+        {
+            ListBoxModel listitem = new ListBoxModel();
+            listitem.Code = i.ToString();
+            listitem.DisplayValue = "item" + i.ToString();
+            dropDownList.Add(listitem);
+        }
+
+
+    }
+
+    public void mybox(List<string> Selected)
+    {
+        listboxSelectedItems = new List<string>();
+
+        List<string> temp = new List<string>();
+
+        foreach (var item in Selected)
+        {
+            temp.Add(item);
+        }
+
+        listboxSelectedItems = temp;
+
+    }
+
+
+}
